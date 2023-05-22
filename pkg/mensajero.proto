@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package mensajero;
+
+option go_package = "mensajero/pkg"; // silencia una advertencia del compilador
+
+
+// -----------------servicio-----------------
+
+
+message Correcto {
+    bool ok = 1;
+}
+
+message ObtenerConLimite {
+    int32 largo = 1;
+}
+
+message ListaUsuarios {
+    repeated string usuarios = 1;
+}
+
+message Registracion {
+    string usuarioOrigen = 1;
+}
+
+message TokenAutenticacion {
+    string token = 1;
+}
+
+message Vacio {}
+
+// TODO: Crear un mensaje denominado MensajeApp que contenga dos cadenas:
+// `usuario` y `cuerpo`.
+message MensajeApp {
+}
+
+// TODO: Crear un mensaje denominado MensajesApp que contenga una lista repetida
+// de MensajeApp
+message MensajesApp {
+}
+
+service Mensajero {
+    /* 
+
+     Nuestro servicio funciona como un servicio de intercambio de correo centralizado, 
+     encargado de reenviar los mensajes recibidos al usuario correspondiente. 
+     Hay muchas maneras de diseñar un sistema de este tipo.
+     
+     Una forma sencilla de recibir actualizaciones podría ser sondear (abrir una conexión y 
+     enviar una nueva solicitud HTTP) un servidor periódicamente. Esto es excelente, pero 
+     tiene el costo de incurrir en gastos al establecer la conexión cada vez que se sondea y 
+     es posible que no tenga la mejor experiencia, ya que es una operación de bloqueo.
+
+     Otra forma sería *transmitir* actualizaciones: en lugar de que el cliente solicite 
+     actualizaciones al servidor y el servidor responda, el cliente puede abrir una sola conexión, 
+     mantenerla activa todo el tiempo que quiera y dejar que el servidor le envíe actualizaciones 
+     directamente cuando tenga mensajes. Para hacer esto aún más eficiente, podría implementar 
+     *transmisión bidireccional*: tanto el servidor como el cliente pueden enviarse tantos mensajes
+     como deseen a través de una única conexión indefinidamente mantenida hasta que uno de ellos la
+     cierre. Esta es una opción mucho más natural para desarrollar una aplicación de mensajes.
+
+     Ambas arquitecturas son compatibles con gRPC. 
+     Debido a que el primer patrón conduce a un código que se parece al que usará en otros proyectos, 
+     hemos optado por trabajar con esta arquitectura más simple pero menos eficiente. Si está 
+     interesado en ejemplos de cómo desarrollar una aplicación de transmisión (streaming) con gRPC, 
+     puede mirar el código de cliente, el código de servidor y el código de protocol buffers en
+     https://github.com/pahanini/go-grpc-bidirectional-streaming-example
+
+    */
+
+    // El usuario recibe un token de conexión. Este token de conexión se pasa implícitamente como 
+    // metadatos en todas las demás llamadas y es validado por un interceptor del lado del servidor.
+    rpc Conectar(Registracion) returns (TokenAutenticacion);
+
+    // El usuario envía un mensaje a otro usuario.
+    rpc Enviar(MensajeApp) returns (Correcto);
+
+    // El usuario obtiene todos los mensajes dirigidos a El en lotes. El tamaño del lote es
+    // definido por el servidor que implementa esta RPC, los clientes no pueden controlarlo.
+    rpc Obtener(Vacio) returns (MensajesApp);
+
+    // El usuario obtiene una lista de los usuarios actualmente activos.
+    rpc Listar(Vacio) returns (ListaUsuarios);
+
+    // Enviado por el usuario para informar al servidor que se va. Luego, el servidor puede 
+    // optar por hacer algo con la acumulación de mensajes que quedan en la cola de la bandeja de
+    // entrada del usuario que aún no se han leído; para esta práctica, simplemente los eliminaremos.
+    // También invalida el token de autenticación utilizado por el usuario.
+      rpc Desconectar(Vacio) returns (Correcto);
+}
