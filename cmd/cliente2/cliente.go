@@ -12,7 +12,7 @@ import (
 const (
 	DIRECCION_SERVIDOR_PREDETERMINADA       string = "localhost"
 	PUERTO_SERVIDOR_PREDETERMINADO          string = "12345"
-	USUARIO_PREDETERMINADO                  string = "jeffra"
+	USUARIO_PREDETERMINADO                  string = "matias"
 	TEMPORIZADOR_EN_SEGUNDOS_PREDETERMINADO int    = 3
 )
 

@@ -28,7 +28,7 @@ func main() {
 	servidorReal := grpc.NewServer(
 		grpc.UnaryInterceptor(servicioMensajero.Interceptor),
 	)
-	mensajero.RegisterMensajeroServer(servidorReal, servicioMensajero)
+	mensajero.RegisterMensajeroServer(servidorReal, &servicioMensajero)
 	if err := servidorReal.Serve(listen); err != nil {
 		fmt.Println("Falla: ", err)
 	}

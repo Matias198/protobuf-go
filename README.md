@@ -32,3 +32,9 @@ Implementar los TODOs
 ## Pruebas
 
 - `go test ./...` debería ejecutar todas las pruebas.
+
+## Compilar el .proto
+
+- protoc --go_out=. --go-grpc_out=. ./pkg/*.proto
+
+> Nota: Sin plugins 

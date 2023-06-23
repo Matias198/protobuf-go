@@ -2,12 +2,10 @@ syntax = "proto3";
 
 package mensajero;
 
-option go_package = "mensajero/pkg"; // silencia una advertencia del compilador
+option go_package = "/pkg"; // silencia una advertencia del compilador
 
 
-// -----------------servicio-----------------
-
-
+// -----------------servicio----------------- 
 message Correcto {
     bool ok = 1;
 }
@@ -33,11 +31,14 @@ message Vacio {}
 // TODO: Crear un mensaje denominado MensajeApp que contenga dos cadenas:
 // `usuario` y `cuerpo`.
 message MensajeApp {
+    string usuario = 1;
+    string cuerpo = 2;
 }
 
 // TODO: Crear un mensaje denominado MensajesApp que contenga una lista repetida
 // de MensajeApp
 message MensajesApp {
+    repeated MensajeApp mensajes = 1;
 }
 
 service Mensajero {
@@ -87,5 +88,5 @@ service Mensajero {
     // optar por hacer algo con la acumulación de mensajes que quedan en la cola de la bandeja de
     // entrada del usuario que aún no se han leído; para esta práctica, simplemente los eliminaremos.
     // También invalida el token de autenticación utilizado por el usuario.
-      rpc Desconectar(Vacio) returns (Correcto);
+    rpc Desconectar(Vacio) returns (Correcto);
 }
