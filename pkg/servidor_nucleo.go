@@ -65,13 +65,13 @@ func (s Servidor) Interceptor(ctx context.Context, req interface{}, info *grpc.U
 	}
 
 	// Imprime los parametros ok y mdlength para depurar que esta leyendo el interceptor
-	fmt.Printf("Lectura de metadatos en la peticion: %v\n", ok)
+	//fmt.Printf("Lectura de metadatos en la peticion: %v\n", ok)
 	if ok {
 		//Recorre la tabla de autenticacion viendo si el usuario con el token estan conectados
 		for usuario, token := range s.TablaAutenticacionUsuario {
 			if md["token"][0] == token {
 				// Imprime si encuentra el usuario con su token
-				fmt.Printf("El usuario %s se encuentra conectado y autenticado\n", usuario)
+				//fmt.Printf("El usuario %s se encuentra conectado y autenticado\n", usuario)
 				fmt.Println(info.FullMethod)
 				return handler(context.WithValue(ctx, nombreUsuario, usuario), req)
 			}
@@ -98,13 +98,14 @@ func (s Servidor) Conectar(_ context.Context, r *Registracion) (*TokenAutenticac
 	s.BandejasEntrada[r.UsuarioOrigen] = make(chan *MensajeApp, LARGO_BUZON)
 
 	// Imprime el token de auternticacion
-	fmt.Printf("El usuario %s se conectó\n", r.UsuarioOrigen)
+	//fmt.Printf("El usuario %s se conectó\n", r.UsuarioOrigen)
 
-	// Imprime la tabla de autenticacion actual
+	/* Imprime la tabla de autenticacion actual
 	fmt.Println("Tabla de autenticacion actual:")
 	for token, usuario := range s.TablaAutenticacionUsuario {
 		fmt.Printf("\t%s: %s\n", token, usuario)
 	}
+	*/
 
 	// Devolver el token de autenticación al cliente
 	return &TokenAutenticacion{

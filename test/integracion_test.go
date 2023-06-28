@@ -2,12 +2,13 @@ package mensajero
 
 import (
 	"fmt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	"math/rand"
+	mensajero "mensajero/pkg"
 	"testing"
 	"time"
-	mensajero "mensajero/pkg"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func enteroAleatorio(minimo int, maximo int) int {
@@ -40,10 +41,10 @@ func TestAutenticacionUsuarioUnico(t *testing.T) {
 	}
 
 	listen, puerto, _ := mensajero.AbrirListener("")
-	direccion:= fmt.Sprintf("localhost:%s", puerto)
+	direccion := fmt.Sprintf("localhost:%s", puerto)
 
 	go func() {
-		mensajero.RegisterMensajeroServer(servidorReal, servicioMensajero)
+		mensajero.RegisterMensajeroServer(servidorReal, &servicioMensajero)
 		if err := servidorReal.Serve(listen); err != nil {
 			t.Fatalf(err.Error())
 		}
@@ -63,7 +64,7 @@ func TestAutenticacionUsuarioUnico(t *testing.T) {
 		t.Errorf("Se esperaba un elemento en TablaAutenticacionUsuario, encontrado %+v", servicioMensajero.TablaAutenticacionUsuario)
 	}
 
-	for _, valor := range servicioMensajero.TablaAutenticacionUsuario {
+	for valor := range servicioMensajero.TablaAutenticacionUsuario {
 		if valor != usuario {
 			t.Errorf("El Usuario %s debe estar en la tabla de usuarios, pero la tabla de usuarios tenía %+v", usuario, servicioMensajero.TablaAutenticacionUsuario)
 		}
@@ -89,10 +90,10 @@ func TestUnSoloClienteInteractua(t *testing.T) {
 	)
 
 	listen, puerto, _ := mensajero.AbrirListener("")
-	direccion:= fmt.Sprintf("localhost:%s", puerto)
+	direccion := fmt.Sprintf("localhost:%s", puerto)
 
 	go func() {
-		mensajero.RegisterMensajeroServer(servidorReal, servicioMensajero)
+		mensajero.RegisterMensajeroServer(servidorReal, &servicioMensajero)
 		if err := servidorReal.Serve(listen); err != nil {
 			t.Fatalf(err.Error())
 		}
@@ -131,7 +132,7 @@ func TestUnSoloClienteInteractua(t *testing.T) {
 	}
 
 	esperado = ""
-	for i := 0; i < 2* mensajero.LARGO_LOTE; i++ {
+	for i := 0; i < 2*mensajero.LARGO_LOTE; i++ {
 		mensajero.Ejecutar(cliente, ctx, usuario, fmt.Sprintf("%d", i))
 		if i < mensajero.LARGO_LOTE {
 			esperado += fmt.Sprintf("[%s]: %d\n", usuario, i)
@@ -147,6 +148,7 @@ func TestUnSoloClienteInteractua(t *testing.T) {
 func TestMultipleClients(t *testing.T) {
 
 	usuario1 := stringAleatorio(12)
+	time.Sleep(1 * time.Nanosecond)
 	usuario2 := stringAleatorio(12)
 
 	servicioMensajero := mensajero.NuevoServidor()
@@ -155,10 +157,10 @@ func TestMultipleClients(t *testing.T) {
 	)
 
 	listen, puerto, _ := mensajero.AbrirListener("")
-	direccion:= fmt.Sprintf("localhost:%s", puerto)
+	direccion := fmt.Sprintf("localhost:%s", puerto)
 
 	go func() {
-		mensajero.RegisterMensajeroServer(servidorReal, servicioMensajero)
+		mensajero.RegisterMensajeroServer(servidorReal, &servicioMensajero)
 		if err := servidorReal.Serve(listen); err != nil {
 			t.Fatalf(err.Error())
 		}
@@ -182,14 +184,14 @@ func TestMultipleClients(t *testing.T) {
 
 	respuesta, err := mensajero.Ejecutar(cliente1, ctx1, "listar")
 	// pueden implementar esto de manera independiente del orden
-	esperadoA := fmt.Sprintf("%s,%s\n", usuario1, usuario2)
-	esperadoB := fmt.Sprintf("%s,%s\n", usuario2, usuario1)
+	esperadoA := fmt.Sprintf("%s, %s\n", usuario1, usuario2)
+	esperadoB := fmt.Sprintf("%s, %s\n", usuario2, usuario1)
 	if (respuesta != esperadoA && respuesta != esperadoB) || err != nil {
 		t.Errorf("Se esperaba %q o %q en la llamada a `listar`, se obtuvo %q con error %+v", esperadoA, esperadoB, respuesta, err)
 	}
 
 	esperado := ""
-	for i := 0; i < 2* mensajero.LARGO_LOTE; i++ {
+	for i := 0; i < 2*mensajero.LARGO_LOTE; i++ {
 		mensajero.Ejecutar(cliente2, ctx2, usuario1, fmt.Sprintf("%d", i))
 		if i < mensajero.LARGO_LOTE {
 			esperado += fmt.Sprintf("[%s]: %d\n", usuario2, i)
@@ -200,4 +202,7 @@ func TestMultipleClients(t *testing.T) {
 	if mensajes != esperado {
 		t.Errorf("Se esperaba %s, se obtuvo %s al solicitar más mensajes que el largo del lote", esperado, mensajes)
 	}
+
+	println("Esperando 5 segundos para que los mensajes se entreguen a los usuarios")
+
 }
